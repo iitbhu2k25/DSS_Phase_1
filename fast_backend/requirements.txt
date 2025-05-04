@@ -1,0 +1,17 @@
+fastapi
+pydantic
+sqlalchemy
+psycopg2-binary
+uvicorn
+python-multipart
+python-jose
+python-dotenv
+alembic
+
+python-decouple
+pydantic-settings
+requests
+fastapi-pagination
+geopandas
+tqdm
+rasterio
