@@ -56,7 +56,7 @@ const MainContent = () => {
   
   useEffect(() => {
     if (submitting) {
-      useCategory().setSelectedCategories([]);
+      useCategory().selectAllCategories();
     }
   }, [submitting]);
   
@@ -84,10 +84,11 @@ const MainContent = () => {
         </div>
       </header>
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main content area - 2/3 width on large screens */}
-          <div className="lg:col-span-2 space-y-8">
+      <main className="px-4 py-8">
+        {/* Changed from grid-cols-2 to grid-cols-3 to create a 2:1 ratio */}
+        <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
+          {/* Main content area - Now spans 8/12 columns on large screens */}
+          <div className="lg:col-span-4 space-y-4">
             {/* Selection Components Section */}
             <section className="bg-white rounded-xl shadow-md overflow-hidden">
               <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
@@ -156,16 +157,12 @@ const MainContent = () => {
             </section>
           </div>
           
-          {/* Map and Slider area - 1/3 width on large screens */}
-          <div className="lg:col-span-1 space-y-4">
+          {/* Map and Slider area - Now spans 4/12 columns on large screens */}
+          <div className="lg:col-span-4 space-y-4">
             {/* Map Section with Larger Height */}
             <section className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
-                <h2 className="text-xl font-semibold text-gray-800">Geographic View</h2>
-              </div>
-              
               {/* Larger Map Component */}
-              <div className="p-4 h-[calc(100vh-28rem)] md:min-h-[500px]">
+              <div className="w-full p-4  md:min-h-[500px]">
                 <MapView />
               </div>
             </section>

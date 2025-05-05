@@ -22,14 +22,16 @@ import 'ol/ol.css';
 interface BaseMapDefinition {
   name: string;
   source: () => OSM | XYZ;
-  thumbnail?: string; // Optional thumbnail URL for the basemap
+  thumbnail?: string; 
+  icon?: string;
 }
 
 // Define baseMaps with appropriate TypeScript typing
 const baseMaps: Record<string, BaseMapDefinition> = {
   osm: {
     name: 'OpenStreetMap',
-    source: () => new OSM()
+    source: () => new OSM(),
+    icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7'
   },
   satellite: {
     name: 'Satellite',
@@ -37,7 +39,8 @@ const baseMaps: Record<string, BaseMapDefinition> = {
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       maxZoom: 19,
       attributions: 'Tiles © Esri'
-    })
+    }),
+    icon: 'M17.66 8L12 2.35 6.34 8C4.78 9.56 4 11.64 4 13.64s.78 4.11 2.34 5.67 3.61 2.35 5.66 2.35 4.1-.79 5.66-2.35S20 15.64 20 13.64 19.22 9.56 17.66 8z'
   },
   terrain: {
     name: 'Terrain',
@@ -45,7 +48,8 @@ const baseMaps: Record<string, BaseMapDefinition> = {
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
       maxZoom: 19,
       attributions: 'Tiles © Esri'
-    })
+    }),
+    icon: 'M14 11l4-8H6l4 8H6l6 10 6-10h-4z'
   },
   dark: {
     name: 'Dark Mode',
@@ -53,7 +57,8 @@ const baseMaps: Record<string, BaseMapDefinition> = {
       url: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
       maxZoom: 19,
       attributions: '© CARTO'
-    })
+    }),
+    icon: 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'
   },
   light: {
     name: 'Light Mode',
@@ -61,7 +66,8 @@ const baseMaps: Record<string, BaseMapDefinition> = {
       url: 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
       maxZoom: 19,
       attributions: '© CARTO'
-    })
+    }),
+    icon: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'
   }
 };
 
@@ -91,6 +97,8 @@ const Maping: React.FC = () => {
   const [legendPosition, setLegendPosition] = useState<'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'>('bottom-right');
   const [selectedBaseMap, setSelectedBaseMap] = useState<string>('osm');
   const [showToolbar, setShowToolbar] = useState<boolean>(false);
+  const [activePanel, setActivePanel] = useState<string | null>(null);
+  const [showLayerList, setShowLayerList] = useState<boolean>(true);
   
   // Use the map context
   const {
@@ -125,6 +133,15 @@ const Maping: React.FC = () => {
       if (document.exitFullscreen) {
         document.exitFullscreen();
       }
+    }
+  };
+
+  // Toggle active panel function
+  const togglePanel = (panelName: string) => {
+    if (activePanel === panelName) {
+      setActivePanel(null);
+    } else {
+      setActivePanel(panelName);
     }
   };
 
@@ -202,12 +219,16 @@ const Maping: React.FC = () => {
         autoHide: false
       }),
       
-      // Coordinates display
+      // Coordinates display with custom format
       new MousePosition({
-        coordinateFormat: createStringXY(4),
+        coordinateFormat: (coordinate) => {
+          if (!coordinate) return 'No coordinates';
+          const [longitude, latitude] = coordinate;
+          return `Lat: ${latitude.toFixed(6)}° | Long: ${longitude.toFixed(6)}°`;
+        },
         projection: 'EPSG:4326',
         className: 'custom-mouse-position',
-        undefinedHTML: '&nbsp;'
+        undefinedHTML: 'Move mouse over map'
       }),
       
       // Overview map (small map in corner)
@@ -602,11 +623,11 @@ const Maping: React.FC = () => {
   // Generate the correct position class for the legend
   const getLegendPositionClass = () => {
     switch (legendPosition) {
-      case 'top-left': return 'top-2 left-2';
-      case 'top-right': return 'top-2 right-2';
-      case 'bottom-left': return 'bottom-12 left-2';
-      case 'bottom-right': return 'bottom-12 right-2';
-      default: return 'bottom-12 right-2';
+      case 'top-left': return 'top-16 left-16';
+      case 'top-right': return 'top-16 right-16';
+      case 'bottom-left': return 'bottom-16 left-16';
+      case 'bottom-right': return 'bottom-16 right-16';
+      default: return 'bottom-16 right-16';
     }
   };
 
@@ -616,348 +637,531 @@ const Maping: React.FC = () => {
   };
   
   return (
-    <div className="w-full flex flex-col">
-      {/* Improved header with better spacing and responsive design */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-2 mb-3 bg-white rounded-lg p-3 shadow-sm">
-        <div className="text-lg font-bold text-gray-700 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-          </svg>
-          GIS Viewer
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button 
-            onClick={() => setShowToolbar(!showToolbar)}
-            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-sm flex items-center transition-colors font-medium"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <div className="relative w-full h-[600px] flex flex-col bg-gray-100">
+      {/* Modern Map Container */}
+      <div className="relative w-full h-full flex-grow overflow-hidden rounded-lg shadow-lg">
+        {/* The Map */}
+        <div 
+          ref={mapRef} 
+          className="w-full h-full bg-blue-50"
+        />
+        
+        {/* Floating Header Panel - Always Visible */}
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-40 bg-white rounded-full shadow-lg px-4 py-2 flex items-center space-x-3 transition-all duration-300 ease-in-out">
+          <span className="font-bold text-gray-800 flex items-center">
+            <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
-            Map Tools
-          </button>
+            GIS Viewer
+          </span>
           
-          <button 
-            onClick={toggleFullScreen}
-            className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm flex items-center transition-colors font-medium"
-          >
-            {!isFullScreen ? (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex space-x-1">
+            <button
+              onClick={() => togglePanel('layers')}
+              className={`p-2 rounded-full transition-all duration-200 ${activePanel === 'layers' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-700'}`}
+              title="Layers"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </button>
+            
+            <button
+              onClick={() => togglePanel('basemap')}
+              className={`p-2 rounded-full transition-all duration-200 ${activePanel === 'basemap' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-700'}`}
+              title="Base Maps"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h2a2 2 0 002-2v-1a2 2 0 012-2h1.945M5.05 9h13.9c.976 0 1.31-1.293.455-1.832L12 2 4.595 7.168C3.74 7.707 4.075 9 5.05 9z" />
+              </svg>
+            </button>
+            
+            <button
+              onClick={() => togglePanel('tools')}
+              className={`p-2 rounded-full transition-all duration-200 ${activePanel === 'tools' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-700'}`}
+              title="Tools"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+            
+            <button
+              onClick={toggleFullScreen}
+              className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-all duration-200"
+              title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+            >
+              {!isFullScreen ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
                 </svg>
-                Full Screen
-              </>
-            ) : (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Exit Full Screen
-              </>
-            )}
-          </button>
+              )}
+            </button>
+          </div>
         </div>
-      </div>
-      
-      {/* Improved toolbar with more intuitive layout and better visualization */}
-      {showToolbar && (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-4 transition-all duration-200 ease-in-out">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Base Map Selector */}
-            <div className="space-y-2">
-              <div className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+        
+        {/* Base Map Panel */}
+        {activePanel === 'basemap' && (
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-30 bg-white rounded-lg shadow-lg p-4 max-w-md w-full animate-fade-in-down transition-all duration-300 ease-in-out">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-bold text-gray-800">Base Maps</h3>
+              <button 
+                onClick={() => setActivePanel(null)}
+                className="text-gray-500 hover:text-gray-700 rounded-full p-1"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Base Map
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                {Object.entries(baseMaps).map(([key, baseMap]) => (
-                  <button 
-                    key={key}
-                    onClick={() => changeBaseMap(key)}
-                    className={`text-xs py-2 px-3 rounded-md flex items-center justify-center transition-colors ${
-                      selectedBaseMap === key 
-                        ? 'bg-blue-500 text-white shadow-sm' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {baseMap.name}
-                  </button>
-                ))}
-              </div>
+              </button>
             </div>
             
-            {/* Raster Layer Controls - only show if raster is loaded */}
-            {rasterLayerInfo && (
-              <div className="space-y-2">
-                <div className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div className="grid grid-cols-3 gap-3 mt-3">
+              {Object.entries(baseMaps).map(([key, baseMap]) => (
+                <button 
+                  key={key}
+                  onClick={() => changeBaseMap(key)}
+                  className={`flex flex-col items-center justify-center p-3 rounded-lg transition-all duration-200 ${
+                    selectedBaseMap === key 
+                      ? 'bg-blue-100 ring-2 ring-blue-500 text-blue-700 transform scale-105' 
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  <svg className="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={baseMap.icon} />
                   </svg>
-                  Raster Layer Opacity: {layerOpacity}%
+                  <span className="text-xs font-medium">{baseMap.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Layers Panel */}
+        {activePanel === 'layers' && (
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-30 bg-white rounded-lg shadow-lg p-4 max-w-md w-full animate-fade-in-down transition-all duration-300 ease-in-out">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-bold text-gray-800">Map Layers</h3>
+              <button 
+                onClick={() => setActivePanel(null)}
+                className="text-gray-500 hover:text-gray-700 rounded-full p-1"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-3 mt-2">
+              {/* Primary Layer */}
+              {primaryFeatureCount > 0 && (
+                <div className={`p-3 rounded-lg bg-blue-50 border border-blue-100 transition-all duration-300`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                      <span className="font-medium text-blue-800">Primary Layer</span>
+                    </div>
+                    <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
+                      {primaryFeatureCount} features
+                    </span>
+                  </div>
                 </div>
-                <div className="px-2">
+              )}
+              
+              {/* Secondary Layer */}
+              {secondaryFeatureCount > 0 && (
+                <div className={`p-3 rounded-lg bg-green-50 border border-green-100 transition-all duration-300`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                      <span className="font-medium text-green-800">Secondary Layer</span>
+                    </div>
+                    <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">
+                      {secondaryFeatureCount} features
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Raster Layer with Opacity Control */}
+              {rasterLayerInfo && (
+                <div className={`p-3 rounded-lg bg-purple-50 border border-purple-100 transition-all duration-300`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                      <span className="font-medium text-purple-800">Raster Layer</span>
+                    </div>
+                    <button 
+                      onClick={() => setShowLegend(!showLegend)}
+                      className={`text-xs px-2 py-1 rounded-full transition-all duration-200 ${
+                        showLegend 
+                          ? 'bg-purple-200 text-purple-800' 
+                          : 'bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      {showLegend ? 'Hide Legend' : 'Show Legend'}
+                    </button>
+                  </div>
+                  
+                  <div className="mt-2">
+                    <div className="flex justify-between text-xs text-gray-700 mb-1">
+                      <span>Opacity: {layerOpacity}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={layerOpacity}
+                      onChange={handleOpacityChange}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    />
+                  </div>
+                  
+                  {/* Legend Position Controls */}
+                  {showLegend && (
+                    <div className="mt-3">
+                      <div className="text-xs font-medium text-gray-700 mb-1">Legend Position</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button 
+                          onClick={() => moveLegend('top-left')}
+                          className={`p-2 text-xs rounded transition-all duration-200 ${
+                            legendPosition === 'top-left' 
+                              ? 'bg-purple-200 text-purple-800' 
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Top Left
+                        </button>
+                        <button 
+                          onClick={() => moveLegend('top-right')}
+                          className={`p-2 text-xs rounded transition-all duration-200 ${
+                            legendPosition === 'top-right' 
+                              ? 'bg-purple-200 text-purple-800' 
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Top Right
+                        </button>
+                        <button 
+                          onClick={() => moveLegend('bottom-left')}
+                          className={`p-2 text-xs rounded transition-all duration-200 ${
+                            legendPosition === 'bottom-left' 
+                              ? 'bg-purple-200 text-purple-800' 
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Bottom Left
+                        </button>
+                        <button 
+                          onClick={() => moveLegend('bottom-right')}
+                          className={`p-2 text-xs rounded transition-all duration-200 ${
+                            legendPosition === 'bottom-right' 
+                              ? 'bg-purple-200 text-purple-800' 
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Bottom Right
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* No Layers Message */}
+              {primaryFeatureCount === 0 && secondaryFeatureCount === 0 && !rasterLayerInfo && (
+                <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
+                  <svg className="w-10 h-10 mx-auto mb-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  <p>No layers are currently active</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Tools Panel */}
+        {activePanel === 'tools' && (
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-30 bg-white rounded-lg shadow-lg p-4 max-w-md w-full animate-fade-in-down transition-all duration-300 ease-in-out">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold text-gray-800">Map Tools</h3>
+              <button 
+                onClick={() => setActivePanel(null)}
+                className="text-gray-500 hover:text-gray-700 rounded-full p-1"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <button
+                onClick={toggleFullScreen}
+                className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
+              >
+                <svg className="w-6 h-6 mb-1 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                </svg>
+                <span className="text-xs font-medium">Full Screen</span>
+              </button>
+              
+              <button
+                onClick={() => setShowLayerList(!showLayerList)}
+                className={`flex flex-col items-center justify-center p-3 rounded-lg transition-colors duration-200 ${
+                  showLayerList 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              >
+                <svg className="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span className="text-xs font-medium">Layer List</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  if (mapInstanceRef.current) {
+                    const view = mapInstanceRef.current.getView();
+                    view.setCenter(fromLonLat([INDIA_CENTER_LON, INDIA_CENTER_LAT]));
+                    view.setZoom(INITIAL_ZOOM);
+                  }
+                }}
+                className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
+              >
+                <svg className="w-6 h-6 mb-1 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span className="text-xs font-medium">Home View</span>
+              </button>
+              
+              {/* Additional tool buttons can be added here */}
+            </div>
+          </div>
+        )}
+        
+        {/* Fixed Side Panel for Layer List */}
+        {showLayerList && (
+          <div className="absolute top-20 right-4 z-20 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-lg p-3 w-60 transition-all duration-300 ease-in-out animate-slide-in-right">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-bold text-gray-800">Active Layers</h3>
+              <button 
+                onClick={() => setShowLayerList(false)}
+                className="text-gray-500 hover:text-gray-700 rounded-full p-1"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-2 mt-1">
+              <div className="flex items-center p-2 rounded-md bg-blue-50 border border-blue-100">
+                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                <span className="text-xs font-medium text-blue-800">Primary Layer</span>
+                {primaryFeatureCount > 0 && (
+                  <span className="ml-auto text-xs bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded-full">
+                    {primaryFeatureCount}
+                  </span>
+                )}
+              </div>
+              
+              {secondaryFeatureCount > 0 && (
+                <div className="flex items-center p-2 rounded-md bg-green-50 border border-green-100">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                  <span className="text-xs font-medium text-green-800">Secondary Layer</span>
+                  <span className="ml-auto text-xs bg-green-200 text-green-800 px-1.5 py-0.5 rounded-full">
+                    {secondaryFeatureCount}
+                  </span>
+                </div>
+              )}
+              
+              {rasterLayerInfo && (
+                <div className="flex items-center p-2 rounded-md bg-purple-50 border border-purple-100">
+                  <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                  <span className="text-xs font-medium text-purple-800">Raster Layer</span>
                   <input
                     type="range"
                     min="0"
                     max="100"
                     value={layerOpacity}
                     onChange={handleOpacityChange}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="ml-auto w-16 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-500"
                   />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0%</span>
-                    <span>50%</span>
-                    <span>100%</span>
-                  </div>
                 </div>
+              )}
+              
+              <div className="flex items-center p-2 rounded-md bg-gray-50 border border-gray-100">
+                <div className="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                <span className="text-xs font-medium text-gray-800">Base Map</span>
+                <span className="ml-auto text-xs bg-gray-200 text-gray-800 px-1.5 py-0.5 rounded-full">
+                  {baseMaps[selectedBaseMap].name}
+                </span>
               </div>
-            )}
+            </div>
             
-            {/* Legend Controls - only show if raster is loaded */}
-            {rasterLayerInfo && (
-              <div className="space-y-2">
-                <div className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                  Legend Controls
-                </div>
-                <div className="flex items-center space-x-2">
+            {/* Quick Base Map Switcher */}
+            <div className="mt-3 pt-2 border-t border-gray-200">
+              <div className="text-xs font-medium text-gray-700 mb-1.5">Quick Base Map Switch</div>
+              <div className="grid grid-cols-3 gap-1">
+                {Object.entries(baseMaps).slice(0, 3).map(([key, baseMap]) => (
                   <button 
-                    onClick={() => setShowLegend(!showLegend)}
-                    className={`flex-1 py-2 px-3 rounded-md text-xs transition-colors ${
-                      showLegend 
-                        ? 'bg-blue-500 text-white' 
+                    key={key}
+                    onClick={() => changeBaseMap(key)}
+                    className={`p-1.5 rounded-md text-xs transition-all duration-200 ${
+                      selectedBaseMap === key 
+                        ? 'bg-blue-500 text-white font-medium' 
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    {showLegend ? 'Hide Legend' : 'Show Legend'}
+                    {baseMap.name.substring(0, 3)}
                   </button>
-                  
-                  <div className="grid grid-cols-2 gap-1">
-                    <button 
-                      onClick={() => moveLegend('top-right')}
-                      className={`p-2 rounded-md transition-colors ${
-                        legendPosition === 'top-right' 
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                      title="Top Right"
-                    >
-                      ↗
-                    </button>
-                    <button 
-                      onClick={() => moveLegend('top-left')}
-                      className={`p-2 rounded-md transition-colors ${
-                        legendPosition === 'top-left' 
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                      title="Top Left"
-                    >
-                      ↖
-                    </button>
-                    <button 
-                      onClick={() => moveLegend('bottom-right')}
-                      className={`p-2 rounded-md transition-colors ${
-                        legendPosition === 'bottom-right' 
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                      title="Bottom Right"
-                    >
-                      ↘
-                    </button>
-                    <button 
-                      onClick={() => moveLegend('bottom-left')}
-                      className={`p-2 rounded-md transition-colors ${
-                        legendPosition === 'bottom-left' 
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                      title="Bottom Left"
-                    >
-                      ↙
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Layer Info Section */}
-          {(primaryFeatureCount > 0 || secondaryFeatureCount > 0) && (
-            <div className="mt-4 pt-3 border-t border-gray-200">
-              <div className="text-sm font-medium text-gray-700 mb-2">Current Layers</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {primaryFeatureCount > 0 && (
-                  <div className="bg-blue-50 border border-blue-100 rounded-md p-2 flex items-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                    <div className="text-xs">
-                      <span className="font-medium">Primary Layer:</span> {primaryFeatureCount} features
-                    </div>
-                  </div>
-                )}
-                
-                {secondaryFeatureCount > 0 && (
-                  <div className="bg-green-50 border border-green-100 rounded-md p-2 flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                    <div className="text-xs">
-                      <span className="font-medium">Secondary Layer:</span> {secondaryFeatureCount} features
-                    </div>
-                  </div>
-                )}
-                
-                {rasterLayerInfo && (
-                  <div className="bg-purple-50 border border-purple-100 rounded-md p-2 flex items-center">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-                    <div className="text-xs">
-                      <span className="font-medium">Raster Layer:</span> {rasterLayerInfo.layer_name || 'STP Map'}
-                    </div>
-                  </div>
-                )}
+                ))}
               </div>
             </div>
-          )}
-        </div>
-      )}
-      
-      {/* Map container with overlay elements */}
-      <div className="relative w-full bg-white rounded-lg overflow-hidden shadow-md border border-gray-200">
-        <div 
-          ref={mapRef} 
-          className="w-full h-[500px] transition-all duration-300"
-          style={{ height: isFullScreen ? '100vh' : '500px' }}
-        >
-          {/* Improved floating overlay legend */}
-          {showLegend && legendUrl && rasterLayerInfo && (
-            <div 
-              className={`absolute z-40 bg-white bg-opacity-95 p-3 rounded-md shadow-lg ${getLegendPositionClass()} transition-all duration-300 ease-in-out border border-gray-200`}
-              style={{maxWidth: '250px'}}
-            >
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-bold text-gray-700 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                  Map Legend
-                </span>
+          </div>
+        )}
+        
+        {/* Legend Display */}
+        {showLegend && legendUrl && rasterLayerInfo && (
+          <div 
+            className={`absolute z-20 bg-white bg-opacity-90 backdrop-blur-sm p-3 rounded-lg shadow-lg ${getLegendPositionClass()} transition-all duration-500 ease-in-out transform hover:scale-105 animate-fade-in border border-gray-200`}
+            style={{maxWidth: '250px'}}
+          >
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-bold text-gray-700 flex items-center">
+                <svg className="h-3.5 w-3.5 mr-1 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Legend
+              </span>
+              <div className="flex space-x-1">
                 <button 
                   onClick={() => setShowLegend(false)}
                   className="text-gray-400 hover:text-gray-600 focus:outline-none rounded-full hover:bg-gray-100 p-1"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-              <div className="legend-container">
-                <img 
-                  src={legendUrl} 
-                  alt="Layer Legend" 
-                  className="max-w-full h-auto"
-                  onError={() => setError("Failed to load legend")}
-                />
-              </div>
             </div>
-          )}
-          
-          {/* Improved loading indicator */}
-          {(loading || isMapLoading || stpOperation) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-50 backdrop-blur-sm transition-all duration-300">
-              <div className="flex flex-col items-center bg-white p-4 rounded-lg shadow-lg">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600 mb-3"></div>
-                <div className="text-blue-700 font-medium">
-                  {stpOperation ? "Processing STP operation..." : "Loading map data..."}
-                </div>
-                {stpOperation && (
-                  <div className="text-gray-500 text-xs mt-1 max-w-xs text-center">
-                    This may take a few moments depending on data complexity
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {/* Improved error message */}
-          {error && (
-            <div className="absolute bottom-0 left-0 right-0 bg-red-100 border-t border-red-300 text-red-700 p-3 text-sm z-40 flex items-center transition-all duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              {error}
-              <button 
-                onClick={() => setError(null)}
-                className="ml-auto text-red-500 hover:text-red-700"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          )}
-          
-          {/* Coordinates display with better styling */}
-          <div className="absolute bottom-2 left-2 bg-white bg-opacity-90 p-2 rounded-md shadow-md text-xs z-30 border border-gray-200">
-            <div className="custom-mouse-position font-mono">Hover to see coordinates</div>
-          </div>
-          
-          {/* Quick base map switcher with improved UI */}
-          <div className="absolute top-2 right-2 bg-white bg-opacity-95 p-2 rounded-md shadow-md z-30 border border-gray-200">
-            <div className="flex flex-wrap gap-1">
-              {Object.entries(baseMaps).slice(0, 3).map(([key, baseMap]) => (
-                <button 
-                  key={key}
-                  onClick={() => changeBaseMap(key)}
-                  className={`text-xs py-1 px-2 rounded-md transition-colors ${
-                    selectedBaseMap === key 
-                      ? 'bg-blue-500 text-white shadow-sm' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  title={baseMap.name}
-                >
-                  {baseMap.name.substring(0, 3)}
-                </button>
-              ))}
-              <button 
-                onClick={() => setShowToolbar(!showToolbar)}
-                className="text-xs py-1 px-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center"
-                title="More options"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-                </svg>
-              </button>
+            <div className="legend-container overflow-hidden rounded-md">
+              <img 
+                src={legendUrl} 
+                alt="Layer Legend" 
+                className="max-w-full h-auto hover:scale-105 transition-transform duration-300"
+                onError={() => setError("Failed to load legend")}
+              />
             </div>
           </div>
-          
-          {/* Layer toggle panel */}
-          <div className="absolute top-12 right-2 bg-white bg-opacity-95 p-2 rounded-md shadow-md z-30 border border-gray-200">
-            <div className="text-xs font-semibold mb-1 text-gray-700">Layers</div>
-            <div className="space-y-1">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-1.5"></div>
-                <span className="text-xs">Primary</span>
-              </div>
-              {secondaryFeatureCount > 0 && (
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-1.5"></div>
-                  <span className="text-xs">Secondary</span>
-                </div>
-              )}
-              {rasterLayerInfo && (
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-1.5"></div>
-                  <span className="text-xs">Raster</span>
-                </div>
-              )}
-            </div>
+        )}
+        
+        {/* Enhanced Coordinates Display */}
+        <div className="absolute bottom-4 left-4 z-20 bg-white bg-opacity-90 backdrop-blur-sm p-3 rounded-lg shadow-md border border-gray-200 transition-all duration-300 ease-in-out animate-fade-in">
+          <div className="flex items-center space-x-2">
+            <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
           </div>
         </div>
+        
+        {/* Modern Loading Overlay */}
+        {(loading || isMapLoading || stpOperation) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 backdrop-blur-sm z-50 transition-all duration-500 animate-fade-in">
+            <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm flex items-center space-x-4 transition-all transform animate-float">
+              <div className="relative">
+                <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-r-2 border-l-2 border-red-500 rounded-full animate-pulse absolute top-0 left-0" style={{animationDelay: '-0.2s'}}></div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-gray-800 tracking-wide">
+                  {stpOperation ? "Processing STP Operation" : "Loading Map Data"}
+                </div>
+                <div className="text-sm text-gray-500 mt-1">
+                  {stpOperation 
+                    ? "This may take a few moments..." 
+                    : "Fetching geographic information..."}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Modern Error Message */}
+        {error && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-40 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow-lg flex items-center transition-all duration-300 animate-slide-up max-w-md">
+            <svg className="w-5 h-5 mr-3 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-sm font-medium pr-6">{error}</span>
+            <button 
+              onClick={() => setError(null)}
+              className="absolute right-2 top-2 text-red-500 hover:text-red-700 rounded-full p-1 transition-colors duration-200"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
+      
+      {/* Add CSS animations */}
+      <style jsx>{`
+        @keyframes fade-in-down {
+          from { opacity: 0; transform: translate(-50%, -10px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slide-in-right {
+          from { transform: translateX(20px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slide-up {
+          from { transform: translate(-50%, 20px); opacity: 0; }
+          to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
+          100% { transform: translateY(0px); }
+        }
+        
+        .animate-fade-in-down {
+          animation: fade-in-down 0.3s ease-out forwards;
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out forwards;
+        }
+        
+        .animate-slide-in-right {
+          animation: slide-in-right 0.3s ease-out forwards;
+        }
+        
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out forwards;
+        }
+        
+        .animate-float {
+          animation: float 2s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };
