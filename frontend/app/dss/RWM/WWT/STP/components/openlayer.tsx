@@ -265,11 +265,7 @@ const Maping: React.FC = () => {
       })
     });
     
-    // Store the map instance in a ref for other effects to use
     mapInstanceRef.current = map;
-    
-    // Set initial loading to false after map is initialized
-    // This ensures loading is independent of selection state
     setTimeout(() => {
       setLoading(false);
       setPrimaryLayerLoading(false);
@@ -359,7 +355,6 @@ const Maping: React.FC = () => {
     primaryLayerRef.current = primaryVectorLayer;
     
     return () => {
-      // Cleanup listeners
       primaryVectorSource.un('featuresloaderror', handleFeaturesError);
       primaryVectorSource.un('featuresloadend', handleFeaturesLoaded);
     };
@@ -377,7 +372,6 @@ const Maping: React.FC = () => {
         secondaryLayerRef.current = null;
       }
       
-      // Update overall loading state
       updateLoadingState();
       return;
     }
@@ -617,7 +611,8 @@ const Maping: React.FC = () => {
   
   // Helper function to update overall loading state
   function updateLoadingState() {
-    setLoading(primaryLayerLoading || secondaryLayerLoading || rasterLoading);
+    // bug  setLoading(primaryLayerLoading || secondaryLayerLoading || rasterLoading);
+    setLoading(secondaryLayerLoading || rasterLoading);
   }
 
   // Generate the correct position class for the legend
@@ -1075,7 +1070,7 @@ const Maping: React.FC = () => {
         
         {/* Modern Loading Overlay */}
         {(loading || isMapLoading || stpOperation) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-25 backdrop-blur-sm z-50 transition-all duration-500 animate-fade-in">
+          <div className="absolute inset-0 flex items-center justify-center  bg-opacity-25 backdrop-blur-sm z-50 transition-all duration-500 animate-fade-in">
             <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm flex items-center space-x-4 transition-all transform animate-float">
               <div className="relative">
                 <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>

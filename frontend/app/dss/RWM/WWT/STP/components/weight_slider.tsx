@@ -1,10 +1,22 @@
 'use client'
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCategory } from '@/app/contexts/STP/CategoryContext';
 
 export const CategorySlider = () => {
+
   const { categories, selectedCategories, isSelected, updateCategoryWeight, getCategoryWeight } = useCategory();
-  
+  useEffect(() => {
+    const checkWeight = () => {
+      if (selectedCategories.length > 0) {
+        let weightSum=0;
+        selectedCategories.forEach((category) => {
+          weightSum += getCategoryWeight(category.RasterName);
+        });
+       console.log("Selected weight:", weightSum);
+      }
+    };
+    checkWeight();
+  }, [selectedCategories,updateCategoryWeight]);
   // If no categories are selected, show a message
   if (selectedCategories.length === 0) {
     return (
@@ -15,8 +27,8 @@ export const CategorySlider = () => {
   }
   
   return (
-    <div className="p-4 bg-white border-t border-gray-200">
-      <h3 className="text-lg font-medium mb-3 text-gray-800">Category Weights (0-100)</h3>
+    <div className="w-100 p-4 bg-white border-t border-gray-200">
+      <h3 className="text-lg font-medium mb-3 text-gray-800">Percentage Influnce (0-100)</h3>
       
       <div className="space-y-4">
         {categories.map((category) => (

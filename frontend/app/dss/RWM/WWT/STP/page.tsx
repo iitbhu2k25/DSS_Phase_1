@@ -12,13 +12,14 @@ import { useCategory } from '@/app/contexts/STP/CategoryContext';
 import MapView from '@/app/dss/RWM/WWT/STP/components/openlayer';
 import { useMap } from '@/app/contexts/STP/MapContext';
 import { CategorySlider } from './components/weight_slider';
-
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const MainContent = () => {
-  const [submitting, setSubmitting] = useState(false);
+
   const [showRankings, setShowRankings] = useState(false);
   const [showTier, setShowTier] = useState(false);
   const [showResults, setShowResults] = useState(false); 
-  const { selectedCategories } = useCategory();
+  const { selectedCategories, submitting, setSubmitting } = useCategory();
   
   const { 
     selectionsLocked, 
@@ -42,8 +43,13 @@ const MainContent = () => {
   };
   
   const handleSubmit = () => {
-    setstpOperation(true);
-    console.log("click the submit button");  
+    if (selectedCategories.length < 2) {
+      toast.error("Please select at least two categories", {
+        position: "top-center",
+      });
+    } else {
+      setstpOperation(true);
+    }
   };
   
   const handleShowRankings = () => {
@@ -179,6 +185,7 @@ const MainContent = () => {
           </div>
         </div>
       </main>
+      <ToastContainer />
     </div>
   );
 };
