@@ -297,7 +297,7 @@
 //         });
         
 //         const marker = L.marker([lat, lng], { icon: locationIcon }).addTo(map);
-//         const circle = L.circle([lat, lng], { radius: accuracy, color: '#4285F4', fillColor: '#4285F433', weight: 1 }).addTo(map);
+//         const circle = L.circle([lat, lng], { radius: accuracy, color: '#4285F4', fillColor: '#4285F433', Influence: 1 }).addTo(map);
         
 //         setUserLocationMarker(marker);
 //         setUserLocationCircle(circle);
@@ -395,7 +395,7 @@
 //       // Create a loading marker to show while the GeoTIFF is loading
 //       const loadingMarker = L.marker(map.getCenter(), {
 //         icon: L.divIcon({
-//           html: `<div style="background-color: rgba(255,255,255,0.8); padding: 5px; border-radius: 4px; font-weight: bold;">Loading ${visibleRasterLayer.name || visibleRasterLayer.id}...</div>`,
+//           html: `<div style="background-color: rgba(255,255,255,0.8); padding: 5px; border-radius: 4px; font-Influence: bold;">Loading ${visibleRasterLayer.name || visibleRasterLayer.id}...</div>`,
 //           className: ''
 //         })
 //       }).addTo(map);

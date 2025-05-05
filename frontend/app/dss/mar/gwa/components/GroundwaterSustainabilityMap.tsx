@@ -122,7 +122,7 @@ const GroundwaterSustainabilityMap: React.FC<GroundwaterSustainabilityMapProps> 
           const rechargeValue = feature.properties.recharge_mm_yr || 0;
           return {
             fillColor: getRechargeColor(rechargeValue),
-            weight: 2,
+            Influence: 2,
             opacity: 1,
             color: 'white',
             dashArray: '3',
@@ -161,7 +161,7 @@ const GroundwaterSustainabilityMap: React.FC<GroundwaterSustainabilityMapProps> 
             mouseover: function(e) {
               const layer = e.target;
               layer.setStyle({
-                weight: 5,
+                Influence: 5,
                 color: '#666',
                 dashArray: '',
                 fillOpacity: 0.9
@@ -237,7 +237,7 @@ const GroundwaterSustainabilityMap: React.FC<GroundwaterSustainabilityMapProps> 
         const basinLayer = window.L.geoJSON(data, {
           style: {
             color: '#2196F3',
-            weight: 2,
+            Influence: 2,
             fillOpacity: 0.1,
             fillColor: '#2196F3'
           },
@@ -367,7 +367,7 @@ const GroundwaterSustainabilityMap: React.FC<GroundwaterSustainabilityMapProps> 
         polyline: {
           shapeOptions: {
             color: '#f357a1',
-            weight: 3,
+            Influence: 3,
           },
         },
         polygon: {
@@ -632,7 +632,7 @@ const GroundwaterSustainabilityMap: React.FC<GroundwaterSustainabilityMapProps> 
     if (selectedFeature) {
       if (selectedFeature.setStyle) {
         selectedFeature.setStyle({
-          weight: 3,
+          Influence: 3,
           color: selectedFeature.options.color || '#3388ff',
           opacity: 1,
           fillOpacity: 0.2,
@@ -646,7 +646,7 @@ const GroundwaterSustainabilityMap: React.FC<GroundwaterSustainabilityMapProps> 
     // Apply active style to selected feature
     if (layer.setStyle) {
       layer.setStyle({
-        weight: 5,
+        Influence: 5,
         color: '#ff0000',
         opacity: 1,
         fillOpacity: 0.4,

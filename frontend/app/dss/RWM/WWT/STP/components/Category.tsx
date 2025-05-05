@@ -77,7 +77,7 @@ const CategorySelector: React.FC = () => {
                       <i className={`fas fa-${category.icon}`}></i>
                     </span>
                     <span className="text-sm">
-                      {category.name} <span className="text-xs text-gray-500">({category.weight})</span>
+                      {category.name} <span className="text-xs text-gray-500">({category.Influence})</span>
                     </span>
                   </div>
                 </label>
@@ -107,7 +107,7 @@ const CategorySelector: React.FC = () => {
                       <i className={`fas fa-${category.icon}`}></i>
                     </span>
                     <span className="text-sm">
-                      {category.name} <span className="text-xs text-gray-500">({category.weight})</span>
+                      {category.name} <span className="text-xs text-gray-500">({category.Influence})</span>
                     </span>
                   </div>
                 </label>

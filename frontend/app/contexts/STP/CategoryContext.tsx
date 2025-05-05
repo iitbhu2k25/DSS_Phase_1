@@ -7,14 +7,15 @@ export interface Category {
   name: string;
   RasterName: string;
   icon: string;
-  defaultWeight: string; // Changed from weight to defaultWeight
+  defaultInfluence: string;
   color: string;
 }
 
-// Interface for raster layer selection
+// Interface for raster layer selection with added weight field
 export interface SelectRasterLayer {
   RasterName: string;
-  weight: string;
+  Influence: string;
+  weight?: string; // New field for weight calculation
 }
 
 interface CategoryContextType {
@@ -22,11 +23,12 @@ interface CategoryContextType {
   selectedCategoryName: SelectRasterLayer[];
   selectedCategories: SelectRasterLayer[];
   toggleCategory: (RasterName: string) => void;
-  updateCategoryWeight: (RasterName: string, weight: number) => void; // New function to update weight
+  updateCategoryInfluence: (RasterName: string, Influence: number) => void;
   selectAllCategories: () => void;
   clearAllCategories: () => void;
   isSelected: (RasterName: string) => boolean;
-  getCategoryWeight: (RasterName: string) => number; // New function to get current weight
+  getCategoryInfluence: (RasterName: string) => number;
+  getCategoryWeight: (RasterName: string) => number; // New function to get weight
 }
 
 interface CategoryProviderProps {
@@ -43,7 +45,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Proximity to Critical River Stretches',
     RasterName: 'STP_River_Stretches_Raster',
     icon: 'water',
-    defaultWeight: '29.3', // Changed from weight to defaultWeight
+    defaultInfluence: '29.3',
     color: 'text-blue-500'
   },
   {
@@ -51,7 +53,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Population Density',
     RasterName: 'STP_Population_Density_Raster',
     icon: 'users',
-    defaultWeight: '26.8',
+    defaultInfluence: '26.8',
     color: 'text-red-500'
   },
   {
@@ -59,7 +61,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Distance from Drainage Network',
     RasterName: 'STP_Drainage_Network_Raster',
     icon: 'tint',
-    defaultWeight: '16.6',
+    defaultInfluence: '16.6',
     color: 'text-blue-400'
   },
   {
@@ -67,7 +69,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Buffer of the Drain Outlet based on their flow',
     RasterName: 'STP_Drain_Outlet_Raster',
     icon: 'stream',
-    defaultWeight: '9.4',
+    defaultInfluence: '9.4',
     color: 'text-green-500'
   },
   {
@@ -75,7 +77,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Land Availability',
     RasterName: 'STP_Land_Availability_Raster',
     icon: 'mountain',
-    defaultWeight: '6.8',
+    defaultInfluence: '6.8',
     color: 'text-yellow-500'
   },
   {
@@ -83,7 +85,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Ground Quality',
     RasterName: 'STP_Ground_Quality_Raster',
     icon: 'layer-group',
-    defaultWeight: '5.9',
+    defaultInfluence: '5.9',
     color: 'text-blue-500'
   },
   {
@@ -91,7 +93,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'GroundWater Depth',
     RasterName: 'STP_GroundWater_Depth_Raster',
     icon: 'tint-slash',
-    defaultWeight: '5.2',
+    defaultInfluence: '5.2',
     color: 'text-blue-400'
   }
 ];
@@ -100,21 +102,52 @@ const AVAILABLE_CATEGORIES: Category[] = [
 export const CategoryProvider = ({ children }: CategoryProviderProps) => {
   const [selectedCategoryName, setSelectedCategoryName] = useState<SelectRasterLayer[]>([]);
 
-  // Get selected category details for API
+  // Calculate weights for all selected categories
+  const calculateWeights = (categories: SelectRasterLayer[]): SelectRasterLayer[] => {
+    if (categories.length === 0) return [];
+    
+    // Calculate sum of all influences
+    const totalInfluence = categories.reduce((sum, category) => {
+      return sum + parseFloat(category.Influence);
+    }, 0);
+    
+    // If sum is 0, assign equal weights
+    if (totalInfluence === 0) {
+      const equalWeight = (1 / categories.length).toFixed(4);
+      return categories.map(category => ({
+        ...category,
+        weight: equalWeight
+      }));
+    }
+    
+    // Calculate weight for each category
+    return categories.map(category => {
+      const weight = (parseFloat(category.Influence) / totalInfluence).toFixed(4);
+      return {
+        ...category,
+        weight
+      };
+    });
+  };
+
+  // Get selected category details for API with weights
   const getSelectedCategoryNames = (): SelectRasterLayer[] => {
-    return AVAILABLE_CATEGORIES
+    const selectedCategories = AVAILABLE_CATEGORIES
       .filter(category => selectedCategoryName.some(item => item.RasterName === category.RasterName))
       .map(category => {
-        // Find the custom weight if it exists
-        const customWeight = selectedCategoryName.find(
+        // Find the custom Influence if it exists
+        const customInfluence = selectedCategoryName.find(
           item => item.RasterName === category.RasterName
-        )?.weight;
+        )?.Influence;
         
         return {
           RasterName: category.RasterName,
-          weight: customWeight || category.defaultWeight
+          Influence: customInfluence || category.defaultInfluence
         };
       });
+    
+    // Calculate and add weights
+    return calculateWeights(selectedCategories);
   };
   
   // Toggle a category selection
@@ -123,67 +156,86 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
       // Find if the RasterName already exists in the selection
       const isSelected = prev.some(item => item.RasterName === RasterName);
       
+      let newSelection;
       if (isSelected) {
         // Remove it if already selected
-        return prev.filter(item => item.RasterName !== RasterName);
+        newSelection = prev.filter(item => item.RasterName !== RasterName);
       } else {
-        // Add it with defaultWeight from the AVAILABLE_CATEGORIES
+        // Add it with defaultInfluence from the AVAILABLE_CATEGORIES
         const category = AVAILABLE_CATEGORIES.find(cat => cat.RasterName === RasterName);
         if (category) {
-          return [...prev, { RasterName, weight: category.defaultWeight }];
+          newSelection = [...prev, { RasterName, Influence: category.defaultInfluence }];
+        } else {
+          newSelection = prev;
         }
-        return prev;
       }
+      
+      // Recalculate weights after changing selection
+      return calculateWeights(newSelection);
     });
   };
   
-  // Update the weight of a category (for slider)
-  const updateCategoryWeight = (RasterName: string, weight: number): void => {
-    // Ensure weight is between 0 and 100
-    const clampedWeight = Math.min(Math.max(weight, 0), 100);
+  // Update the Influence of a category (for slider)
+  const updateCategoryInfluence = (RasterName: string, Influence: number): void => {
+    // Ensure Influence is between 0 and 100
+    const clampedInfluence = Math.min(Math.max(Influence, 0), 100);
     
     setSelectedCategoryName(prev => {
+      let updatedCategories;
       const categoryIndex = prev.findIndex(item => item.RasterName === RasterName);
       
       if (categoryIndex !== -1) {
-        // Update existing category weight
-        const updatedCategories = [...prev];
+        // Update existing category Influence
+        updatedCategories = [...prev];
         updatedCategories[categoryIndex] = {
           ...updatedCategories[categoryIndex],
-          weight: clampedWeight.toString()
+          Influence: clampedInfluence.toString()
         };
-        return updatedCategories;
       } else {
-        // Add category with custom weight if not already selected
+        // Add category with custom Influence if not already selected
         const category = AVAILABLE_CATEGORIES.find(cat => cat.RasterName === RasterName);
         if (category) {
-          return [...prev, { RasterName, weight: clampedWeight.toString() }];
+          updatedCategories = [...prev, { RasterName, Influence: clampedInfluence.toString() }];
+        } else {
+          updatedCategories = prev;
         }
-        return prev;
       }
+      
+      // Recalculate weights after updating influence
+      return calculateWeights(updatedCategories);
     });
   };
   
-  // Get the current weight of a category (for slider value)
-  const getCategoryWeight = (RasterName: string): number => {
+  // Get the current Influence of a category (for slider value)
+  const getCategoryInfluence = (RasterName: string): number => {
     const selectedCategory = selectedCategoryName.find(item => item.RasterName === RasterName);
     if (selectedCategory) {
-      return parseFloat(selectedCategory.weight);
+      return parseFloat(selectedCategory.Influence);
     }
     
-    // Return default weight if category not selected
+    // Return default Influence if category not selected
     const defaultCategory = AVAILABLE_CATEGORIES.find(cat => cat.RasterName === RasterName);
-    return defaultCategory ? parseFloat(defaultCategory.defaultWeight) : 0;
+    return defaultCategory ? parseFloat(defaultCategory.defaultInfluence) : 0;
+  };
+  
+  // Get the current weight of a category
+  const getCategoryWeight = (RasterName: string): number => {
+    const selectedCategory = selectedCategoryName.find(item => item.RasterName === RasterName);
+    if (selectedCategory && selectedCategory.weight) {
+      return parseFloat(selectedCategory.weight);
+    }
+    return 0;
   };
   
   // Select all categories
   const selectAllCategories = (): void => {
-    setSelectedCategoryName(
-      AVAILABLE_CATEGORIES.map(category => ({
-        RasterName: category.RasterName,
-        weight: category.defaultWeight
-      }))
-    );
+    const allCategories = AVAILABLE_CATEGORIES.map(category => ({
+      RasterName: category.RasterName,
+      Influence: category.defaultInfluence
+    }));
+    
+    // Calculate weights and update state
+    setSelectedCategoryName(calculateWeights(allCategories));
   };
   
   // Clear all selected categories
@@ -202,10 +254,11 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
     selectedCategoryName,
     selectedCategories: getSelectedCategoryNames(),
     toggleCategory,
-    updateCategoryWeight,
+    updateCategoryInfluence,
     selectAllCategories,
     clearAllCategories,
     isSelected,
+    getCategoryInfluence,
     getCategoryWeight
   };
   

@@ -4,24 +4,23 @@ import { useCategory } from '@/app/contexts/STP/CategoryContext';
 
 export const CategorySlider = () => {
 
-  const { categories, selectedCategories, isSelected, updateCategoryWeight, getCategoryWeight } = useCategory();
+  const { categories, selectedCategories, isSelected, updateCategoryInfluence, getCategoryInfluence } = useCategory();
   useEffect(() => {
-    const checkWeight = () => {
+    const checkInfluence = () => {
       if (selectedCategories.length > 0) {
-        let weightSum=0;
+        let InfluenceSum=0;
         selectedCategories.forEach((category) => {
-          weightSum += getCategoryWeight(category.RasterName);
+          InfluenceSum += getCategoryInfluence(category.RasterName);
         });
-       console.log("Selected weight:", weightSum);
       }
     };
-    checkWeight();
-  }, [selectedCategories,updateCategoryWeight]);
+    checkInfluence();
+  }, [selectedCategories,updateCategoryInfluence]);
   // If no categories are selected, show a message
   if (selectedCategories.length === 0) {
     return (
       <div className="p-4 text-center text-gray-500">
-        Select categories to adjust their weights
+        Select categories to adjust their Influences
       </div>
     );
   }
@@ -40,7 +39,7 @@ export const CategorySlider = () => {
                   {category.name}
                 </span>
                 <span className="text-sm font-bold">
-                  {getCategoryWeight(category.RasterName)}
+                  {getCategoryInfluence(category.RasterName)}
                 </span>
               </div>
               
@@ -50,8 +49,8 @@ export const CategorySlider = () => {
                   type="range"
                   min="0"
                   max="100"
-                  value={getCategoryWeight(category.RasterName)}
-                  onChange={(e) => updateCategoryWeight(category.RasterName, parseInt(e.target.value, 10))}
+                  value={getCategoryInfluence(category.RasterName)}
+                  onChange={(e) => updateCategoryInfluence(category.RasterName, parseInt(e.target.value, 10))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 />
                 <span className="text-xs">100</span>

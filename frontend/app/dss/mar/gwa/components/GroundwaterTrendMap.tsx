@@ -120,7 +120,7 @@ const GroundwaterTrendMap: React.FC<GroundwaterTrendMapProps> = ({
           
           return {
             fillColor: color,
-            weight: 2,
+            Influence: 2,
             opacity: 0.7,
             color: 'white',
             fillOpacity: 0.7
@@ -201,7 +201,7 @@ const GroundwaterTrendMap: React.FC<GroundwaterTrendMapProps> = ({
         const basinLayer = window.L.geoJSON(data, {
           style: {
             color: '#2196F3',
-            weight: 2,
+            Influence: 2,
             fillOpacity: 0.1,
             fillColor: '#2196F3'
           },
@@ -331,7 +331,7 @@ const GroundwaterTrendMap: React.FC<GroundwaterTrendMapProps> = ({
         polyline: {
           shapeOptions: {
             color: '#f357a1',
-            weight: 3,
+            Influence: 3,
           },
         },
         polygon: {
@@ -596,7 +596,7 @@ const GroundwaterTrendMap: React.FC<GroundwaterTrendMapProps> = ({
     if (selectedFeature) {
       if (selectedFeature.setStyle) {
         selectedFeature.setStyle({
-          weight: 3,
+          Influence: 3,
           color: selectedFeature.options.color || '#3388ff',
           opacity: 1,
           fillOpacity: 0.2,
@@ -610,7 +610,7 @@ const GroundwaterTrendMap: React.FC<GroundwaterTrendMapProps> = ({
     // Apply active style to selected feature
     if (layer.setStyle) {
       layer.setStyle({
-        weight: 5,
+        Influence: 5,
         color: '#ff0000',
         opacity: 1,
         fillOpacity: 0.4,

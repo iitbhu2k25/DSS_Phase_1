@@ -19,7 +19,7 @@ const MainContent = () => {
   const [showRankings, setShowRankings] = useState(false);
   const [showTier, setShowTier] = useState(false);
   const [showResults, setShowResults] = useState(false); 
-  const { selectedCategories, submitting, setSubmitting } = useCategory();
+  const { selectedCategories, selectAllCategories, submitting } = useCategory();
   
   const { 
     selectionsLocked, 
@@ -173,11 +173,11 @@ const MainContent = () => {
               </div>
             </section>
             
-            {/* Category Weight Sliders in a separate box below the map */}
+            {/* Category Influence Sliders in a separate box below the map */}
             {showCategories && selectedCategories.length > 0 && (
               <section className="bg-white rounded-xl shadow-md overflow-hidden animate-fadeIn">
                 <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
-                  <h2 className="text-lg font-semibold text-gray-800">Category Weights</h2>
+                  <h2 className="text-lg font-semibold text-gray-800">Category Influences</h2>
                 </div>
                 <CategorySlider />
               </section>

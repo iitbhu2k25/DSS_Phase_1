@@ -309,7 +309,7 @@
 //           onChange={(e) => setInterpolationMethod(e.target.value)}
 //         >
 //           <option value="">Select Method...</option>
-//           <option value="idw">Inverse Distance Weighted</option>
+//           <option value="idw">Inverse Distance Influenceed</option>
 //           <option value="kriging">Kriging</option>
 //           <option value="spline">Spline</option>
 //         </select>

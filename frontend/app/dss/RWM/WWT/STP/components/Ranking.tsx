@@ -85,7 +85,7 @@ const RankingChart = () => {
             text: 'Location Rankings',
             font: {
               size: 16,
-              weight: 'bold',
+              Influence: 'bold',
             },
             padding: {
               top: 10,

@@ -124,7 +124,7 @@ const GroundwaterContourMap: React.FC<GroundwaterContourMapProps> = ({
           if (feature.properties && feature.properties.color) {
             return {
               color: feature.properties.color,
-              weight: 3,
+              Influence: 3,
               opacity: 0.8
             };
           }
@@ -132,7 +132,7 @@ const GroundwaterContourMap: React.FC<GroundwaterContourMapProps> = ({
           // Fallback to using a generic color
           return {
             color: '#ff0000', // Bright red as fallback
-            weight: 3,
+            Influence: 3,
             opacity: 0.8
           };
         },
@@ -176,7 +176,7 @@ const GroundwaterContourMap: React.FC<GroundwaterContourMapProps> = ({
         const boundary = window.L.geoJSON(contourData.boundary_geojson, {
           style: {
             color: 'red',
-            weight: 2,
+            Influence: 2,
             opacity: 0.5,
             fillColor: '#eee',
             fillOpacity: 0.1,
@@ -252,7 +252,7 @@ const GroundwaterContourMap: React.FC<GroundwaterContourMapProps> = ({
         const basinLayer = window.L.geoJSON(data, {
           style: {
             color: '#2196F3',
-            weight: 2,
+            Influence: 2,
             fillOpacity: 0.1,
             fillColor: '#2196F3'
           },
@@ -382,7 +382,7 @@ const GroundwaterContourMap: React.FC<GroundwaterContourMapProps> = ({
         polyline: {
           shapeOptions: {
             color: '#f357a1',
-            weight: 3,
+            Influence: 3,
           },
         },
         polygon: {
@@ -647,7 +647,7 @@ const GroundwaterContourMap: React.FC<GroundwaterContourMapProps> = ({
     if (selectedFeature) {
       if (selectedFeature.setStyle) {
         selectedFeature.setStyle({
-          weight: 3,
+          Influence: 3,
           color: selectedFeature.options.color || '#3388ff',
           opacity: 1,
           fillOpacity: 0.2,
@@ -661,7 +661,7 @@ const GroundwaterContourMap: React.FC<GroundwaterContourMapProps> = ({
     // Apply active style to selected feature
     if (layer.setStyle) {
       layer.setStyle({
-        weight: 5,
+        Influence: 5,
         color: '#ff0000',
         opacity: 1,
         fillOpacity: 0.4,
