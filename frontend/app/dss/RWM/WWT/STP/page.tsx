@@ -1,76 +1,59 @@
 'use client'
 
-import React, { useState, useEffect, use } from 'react';
-
+import React, { useState, useEffect } from 'react';
 import { LocationProvider } from '@/app/contexts/STP/LocationContext';
 import { CategoryProvider } from '@/app/contexts/STP/CategoryContext';
 import { MapProvider } from '@/app/contexts/STP/MapContext';
-
 import LocationSelector from '@/app/dss/RWM/WWT/STP/components/locations';
 import TierSelector from '@/app/dss/RWM/WWT/STP/components/TierSelection';
 import CategorySelector from '@/app/dss/RWM/WWT/STP/components/Category';
 import { useLocation } from '@/app/contexts/STP/LocationContext';
-import {useCategory} from '@/app/contexts/STP/CategoryContext';
+import { useCategory } from '@/app/contexts/STP/CategoryContext';
 import MapView from '@/app/dss/RWM/WWT/STP/components/openlayer';
 import { useMap } from '@/app/contexts/STP/MapContext';
-import { set } from 'ol/transform';
-
+import { CategorySlider } from './components/weight_slider';
 
 const MainContent = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showRankings, setShowRankings] = useState(false);
   const [showTier, setShowTier] = useState(false);
   const [showResults, setShowResults] = useState(false); 
-  const {selectedCategories} =useCategory();
-  // Get these directly from the location context
+  const { selectedCategories } = useCategory();
+  
   const { 
     selectionsLocked, 
     confirmSelections, 
     resetSelections 
   } = useLocation();
   
-  const {setstpOperation} = useMap();
-  // Derive showCategories directly from selectionsLocked
+  const { setstpOperation } = useMap();
   const [showCategories, setShowCategories] = useState(false);
   
-  // Watch for changes in the selectionsLocked state
   useEffect(() => {
-    //console.log("selectionsLocked changed to:", selectionsLocked);
     setShowCategories(selectionsLocked);
   }, [selectionsLocked]);
   
-  // Handle location/tier confirmation
   const handleConfirm = () => {
     const result = confirmSelections();
-    if (result) {
-      //console.log("Selection confirmed successfully");
-    } else {
-      //console.log("Selection confirmation failed - no villages selected");
-    }
   };
   
-  // Handle reset
   const handleReset = () => {
-    //console.log("Handling reset");
     resetSelections();
   };
   
-  // Handle form submission
   const handleSubmit = () => {
-
     setstpOperation(true);
-    console.log("clikck the submit button");  
+    console.log("click the submit button");  
   };
   
-  // Show rankings chart
   const handleShowRankings = () => {
-    setShowRankings(!showRankings); // Toggle rankings visibility
+    setShowRankings(!showRankings);
   };
   
-  // Toggle between LocationSelector and TierSelector
   const toggleSelectorView = () => {
     setShowTier(!showTier);
   };
+  
   useEffect(() => {
     if (submitting) {
       useCategory().setSelectedCategories([]);
@@ -79,7 +62,6 @@ const MainContent = () => {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Add animation keyframes for fade-in effect */}
       <style jsx global>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
@@ -89,6 +71,7 @@ const MainContent = () => {
           animation: fadeIn 0.5s ease-out forwards;
         }
       `}</style>
+      
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-6 shadow-lg">
         <div className="container mx-auto px-4">
@@ -102,8 +85,6 @@ const MainContent = () => {
       </header>
       
       <main className="container mx-auto px-4 py-8">
-       
-        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main content area - 2/3 width on large screens */}
           <div className="lg:col-span-2 space-y-8">
@@ -131,8 +112,6 @@ const MainContent = () => {
                 <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
                   {showTier ? <TierSelector /> : <LocationSelector />}
                 </div>
-                
-      
                 
                 {/* Categories Section - Only shown after confirmation */}
                 {showCategories && (
@@ -175,57 +154,31 @@ const MainContent = () => {
                 )}
               </div>
             </section>
-            
-            {/* Results Section - Only shown after submission */}
-            {/* {showResults && (
-              <section className="bg-white rounded-xl shadow-md overflow-hidden animate-fadeIn">
-                <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
-                  <h2 className="text-xl font-semibold text-gray-800">Analysis Results</h2>
-                </div>
-                
-                <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <ResultsTable />
-                  </div>
-                </div>
-              </section>
-            )} */}
           </div>
           
-          {/* Map area - 1/3 width on large screens */}
-          <div className="lg:col-span-1 space-y-8">
-            {/* Map Section */}
+          {/* Map and Slider area - 1/3 width on large screens */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Map Section with Larger Height */}
             <section className="bg-white rounded-xl shadow-md overflow-hidden">
               <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
                 <h2 className="text-xl font-semibold text-gray-800">Geographic View</h2>
               </div>
-              <div className="p-4 h-[calc(100vh-32rem)] md:min-h-[400px]">
+              
+              {/* Larger Map Component */}
+              <div className="p-4 h-[calc(100vh-28rem)] md:min-h-[500px]">
                 <MapView />
               </div>
             </section>
             
-            {/* Rankings Section - Only shown after results are shown
-            {showResults && (
+            {/* Category Weight Sliders in a separate box below the map */}
+            {showCategories && selectedCategories.length > 0 && (
               <section className="bg-white rounded-xl shadow-md overflow-hidden animate-fadeIn">
-                <div className="border-b border-gray-200 bg-gray-50 px-6 py-4 flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-gray-800">Rankings</h2>
-                  <button
-                    type="button"
-                    onClick={handleShowRankings}
-                    className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium shadow-md flex items-center transition duration-200 transform hover:scale-105"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    {showRankings ? "Hide" : "Show"} Rankings
-                  </button>
+                <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
+                  <h2 className="text-lg font-semibold text-gray-800">Category Weights</h2>
                 </div>
-                {/* <div className={`p-6 transition-all duration-500 ease-in-out ${showRankings ? 'opacity-100 max-h-96' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-                  <RankingChart />
-                </div>}
+                <CategorySlider />
               </section>
             )}
-             */}
           </div>
         </div>
       </main>
@@ -239,7 +192,7 @@ const Home = () => {
     <LocationProvider>
       <CategoryProvider>
         <MapProvider>
-        <MainContent />
+          <MainContent />
         </MapProvider>
       </CategoryProvider>
     </LocationProvider>

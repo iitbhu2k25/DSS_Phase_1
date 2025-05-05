@@ -7,7 +7,7 @@ export interface Category {
   name: string;
   RasterName: string;
   icon: string;
-  weight: string;
+  defaultWeight: string; // Changed from weight to defaultWeight
   color: string;
 }
 
@@ -22,9 +22,11 @@ interface CategoryContextType {
   selectedCategoryName: SelectRasterLayer[];
   selectedCategories: SelectRasterLayer[];
   toggleCategory: (RasterName: string) => void;
+  updateCategoryWeight: (RasterName: string, weight: number) => void; // New function to update weight
   selectAllCategories: () => void;
   clearAllCategories: () => void;
   isSelected: (RasterName: string) => boolean;
+  getCategoryWeight: (RasterName: string) => number; // New function to get current weight
 }
 
 interface CategoryProviderProps {
@@ -41,7 +43,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Proximity to Critical River Stretches',
     RasterName: 'STP_River_Stretches_Raster',
     icon: 'water',
-    weight: '29.3',
+    defaultWeight: '29.3', // Changed from weight to defaultWeight
     color: 'text-blue-500'
   },
   {
@@ -49,7 +51,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Population Density',
     RasterName: 'STP_Population_Density_Raster',
     icon: 'users',
-    weight: '26.8',
+    defaultWeight: '26.8',
     color: 'text-red-500'
   },
   {
@@ -57,7 +59,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Distance from Drainage Network',
     RasterName: 'STP_Drainage_Network_Raster',
     icon: 'tint',
-    weight: '16.6',
+    defaultWeight: '16.6',
     color: 'text-blue-400'
   },
   {
@@ -65,7 +67,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Buffer of the Drain Outlet based on their flow',
     RasterName: 'STP_Drain_Outlet_Raster',
     icon: 'stream',
-    weight: '9.4',
+    defaultWeight: '9.4',
     color: 'text-green-500'
   },
   {
@@ -73,7 +75,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Land Availability',
     RasterName: 'STP_Land_Availability_Raster',
     icon: 'mountain',
-    weight: '6.8',
+    defaultWeight: '6.8',
     color: 'text-yellow-500'
   },
   {
@@ -81,7 +83,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Ground Quality',
     RasterName: 'STP_Ground_Quality_Raster',
     icon: 'layer-group',
-    weight: '5.9',
+    defaultWeight: '5.9',
     color: 'text-blue-500'
   },
   {
@@ -89,7 +91,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'GroundWater Depth',
     RasterName: 'STP_GroundWater_Depth_Raster',
     icon: 'tint-slash',
-    weight: '5.2',
+    defaultWeight: '5.2',
     color: 'text-blue-400'
   }
 ];
@@ -102,10 +104,17 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
   const getSelectedCategoryNames = (): SelectRasterLayer[] => {
     return AVAILABLE_CATEGORIES
       .filter(category => selectedCategoryName.some(item => item.RasterName === category.RasterName))
-      .map(category => ({
-        RasterName: category.RasterName,
-        weight: category.weight
-      }));
+      .map(category => {
+        // Find the custom weight if it exists
+        const customWeight = selectedCategoryName.find(
+          item => item.RasterName === category.RasterName
+        )?.weight;
+        
+        return {
+          RasterName: category.RasterName,
+          weight: customWeight || category.defaultWeight
+        };
+      });
   };
   
   // Toggle a category selection
@@ -118,14 +127,53 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
         // Remove it if already selected
         return prev.filter(item => item.RasterName !== RasterName);
       } else {
-        // Add it with weight from the AVAILABLE_CATEGORIES
+        // Add it with defaultWeight from the AVAILABLE_CATEGORIES
         const category = AVAILABLE_CATEGORIES.find(cat => cat.RasterName === RasterName);
         if (category) {
-          return [...prev, { RasterName, weight: category.weight }];
+          return [...prev, { RasterName, weight: category.defaultWeight }];
         }
         return prev;
       }
     });
+  };
+  
+  // Update the weight of a category (for slider)
+  const updateCategoryWeight = (RasterName: string, weight: number): void => {
+    // Ensure weight is between 0 and 100
+    const clampedWeight = Math.min(Math.max(weight, 0), 100);
+    
+    setSelectedCategoryName(prev => {
+      const categoryIndex = prev.findIndex(item => item.RasterName === RasterName);
+      
+      if (categoryIndex !== -1) {
+        // Update existing category weight
+        const updatedCategories = [...prev];
+        updatedCategories[categoryIndex] = {
+          ...updatedCategories[categoryIndex],
+          weight: clampedWeight.toString()
+        };
+        return updatedCategories;
+      } else {
+        // Add category with custom weight if not already selected
+        const category = AVAILABLE_CATEGORIES.find(cat => cat.RasterName === RasterName);
+        if (category) {
+          return [...prev, { RasterName, weight: clampedWeight.toString() }];
+        }
+        return prev;
+      }
+    });
+  };
+  
+  // Get the current weight of a category (for slider value)
+  const getCategoryWeight = (RasterName: string): number => {
+    const selectedCategory = selectedCategoryName.find(item => item.RasterName === RasterName);
+    if (selectedCategory) {
+      return parseFloat(selectedCategory.weight);
+    }
+    
+    // Return default weight if category not selected
+    const defaultCategory = AVAILABLE_CATEGORIES.find(cat => cat.RasterName === RasterName);
+    return defaultCategory ? parseFloat(defaultCategory.defaultWeight) : 0;
   };
   
   // Select all categories
@@ -133,7 +181,7 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
     setSelectedCategoryName(
       AVAILABLE_CATEGORIES.map(category => ({
         RasterName: category.RasterName,
-        weight: category.weight
+        weight: category.defaultWeight
       }))
     );
   };
@@ -154,9 +202,11 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
     selectedCategoryName,
     selectedCategories: getSelectedCategoryNames(),
     toggleCategory,
+    updateCategoryWeight,
     selectAllCategories,
     clearAllCategories,
-    isSelected
+    isSelected,
+    getCategoryWeight
   };
   
   return (
