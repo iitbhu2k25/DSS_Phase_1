@@ -4,30 +4,31 @@ import { useCategory } from '@/app/contexts/STP/CategoryContext';
 
 export const CategorySlider = () => {
 
-  const { categories, selectedCategories, isSelected, updateCategoryInfluence, getCategoryInfluence } = useCategory();
+  const { categories, selectedCategories, isSelected, updateCategoryWeight, getCategoryWeight } = useCategory();
   useEffect(() => {
-    const checkInfluence = () => {
+    const checkWeight = () => {
       if (selectedCategories.length > 0) {
-        let InfluenceSum=0;
+        let weightSum=0;
         selectedCategories.forEach((category) => {
-          InfluenceSum += getCategoryInfluence(category.RasterName);
+          weightSum += getCategoryWeight(category.RasterName);
         });
+       console.log("Selected weight:", weightSum);
       }
     };
-    checkInfluence();
-  }, [selectedCategories,updateCategoryInfluence]);
+    checkWeight();
+  }, [selectedCategories,updateCategoryWeight]);
   // If no categories are selected, show a message
   if (selectedCategories.length === 0) {
     return (
       <div className="p-4 text-center text-gray-500">
-        Select categories to adjust their Influences
+        Select categories to adjust their weights
       </div>
     );
   }
   
   return (
     <div className="w-100 p-4 bg-white border-t border-gray-200">
-      <h3 className="text-lg font-medium mb-3 text-gray-800">Percentage Influnce (0-10)</h3>
+      <h3 className="text-lg font-medium mb-3 text-gray-800">Percentage Influnce (1-10)</h3>
       
       <div className="space-y-4">
         {categories.map((category) => (
@@ -39,7 +40,7 @@ export const CategorySlider = () => {
                   {category.name}
                 </span>
                 <span className="text-sm font-bold">
-                  {getCategoryInfluence(category.RasterName)}
+                  {getCategoryWeight(category.RasterName)}
                 </span>
               </div>
               
@@ -49,12 +50,11 @@ export const CategorySlider = () => {
                   type="range"
                   min="0"
                   max="10"
-                  step="0.1"
-                  value={getCategoryInfluence(category.RasterName)}
-                  onChange={(e) => updateCategoryInfluence(category.RasterName, parseFloat(e.target.value))}
+                  value={getCategoryWeight(category.RasterName)}
+                  onChange={(e) => updateCategoryWeight(category.RasterName, parseInt(e.target.value, 10))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 />
-                <span className="text-xs">10</span>
+                <span className="text-xs">100</span>
               </div>
             </div>
           )

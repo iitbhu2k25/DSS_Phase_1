@@ -45,7 +45,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Proximity to Critical River Stretches',
     RasterName: 'STP_River_Stretches_Raster',
     icon: 'water',
-    defaultInfluence: '29.3',
+    defaultInfluence: '2.93',
     color: 'text-blue-500'
   },
   {
@@ -53,7 +53,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Population Density',
     RasterName: 'STP_Population_Density_Raster',
     icon: 'users',
-    defaultInfluence: '26.8',
+    defaultInfluence: '2.68',
     color: 'text-red-500'
   },
   {
@@ -61,7 +61,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Distance from Drainage Network',
     RasterName: 'STP_Drainage_Network_Raster',
     icon: 'tint',
-    defaultInfluence: '16.6',
+    defaultInfluence: '1.66',
     color: 'text-blue-400'
   },
   {
@@ -69,7 +69,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Buffer of the Drain Outlet based on their flow',
     RasterName: 'STP_Drain_Outlet_Raster',
     icon: 'stream',
-    defaultInfluence: '9.4',
+    defaultInfluence: '0.94',
     color: 'text-green-500'
   },
   {
@@ -77,7 +77,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Land Availability',
     RasterName: 'STP_Land_Availability_Raster',
     icon: 'mountain',
-    defaultInfluence: '6.8',
+    defaultInfluence: '0.68',
     color: 'text-yellow-500'
   },
   {
@@ -85,7 +85,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'Ground Quality',
     RasterName: 'STP_Ground_Quality_Raster',
     icon: 'layer-group',
-    defaultInfluence: '5.9',
+    defaultInfluence: '0.59',
     color: 'text-blue-500'
   },
   {
@@ -93,7 +93,7 @@ const AVAILABLE_CATEGORIES: Category[] = [
     name: 'GroundWater Depth',
     RasterName: 'STP_GroundWater_Depth_Raster',
     icon: 'tint-slash',
-    defaultInfluence: '5.2',
+    defaultInfluence: '0.52',
     color: 'text-blue-400'
   }
 ];
