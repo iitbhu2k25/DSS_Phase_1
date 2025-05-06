@@ -223,7 +223,18 @@ class RasterProcess:
                     
                 hex_color = f"#{r:02x}{g:02x}{b:02x}"
                 colors.append(hex_color.upper())
-        
+
+        elif color_ramp == 'greenTOred':
+            for i in range(num_classes):
+        # Calculate interpolation factor (0 to 1)
+                t = i / max(1, num_classes - 1)
+
+                r = int(t * 255)           # 0 to 255
+                g = int(255 * (1 - t))     # 255 to 0
+                b = 0                      # Always 0
+                    
+                hex_color = f"#{r:02x}{g:02x}{b:02x}"
+                colors.append(hex_color.upper())
         elif color_ramp == 'viridis':
             # Approximation of viridis colormap
             viridis_anchors = [
@@ -385,7 +396,11 @@ class RasterProcess:
     def processRaster(self,payload:STPClassification):
         try:
             file_path=geo.raster_download(workspace_name=payload.get('workspace'), store_name=payload.get('store_name'), layer_name = payload.get('layer_name'))
+            #sld_path=self._generate_dynamic_sld(raster_path=file_path,num_classes=5,color_ramp='viridis')
             sld_path=self._generate_dynamic_sld(raster_path=file_path,num_classes=5,color_ramp='blue_to_red')
+            #sld_path=self._generate_dynamic_sld(raster_path=file_path,num_classes=5,color_ramp='spectral')
+            #sld_path=self._generate_dynamic_sld(raster_path=file_path,num_classes=5,color_ramp='terrain') #terrain
+            #sld_path=self._generate_dynamic_sld(raster_path=file_path,num_classes=5,color_ramp="greenTOred")
             sld_name = os.path.basename(sld_path).split('.')[0]
             geo.apply_sld_to_layer(workspace_name=payload.get('workspace'), layer_name = payload.get('layer_name'),sld_content=sld_path, sld_name=sld_name)
             os.remove(sld_path)
