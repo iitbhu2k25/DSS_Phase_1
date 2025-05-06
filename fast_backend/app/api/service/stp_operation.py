@@ -340,11 +340,12 @@ class RasterProcess:
         color_map.set("type", "intervals")
     
     # Add color map entries
+        level_class=["very low","low","moderate","high","very high"]
         for i, (interval, color) in enumerate(zip(intervals, colors)):
             color_map_entry = ET.SubElement(color_map, "ColorMapEntry")
             color_map_entry.set("color", color)
             color_map_entry.set("quantity", str(interval))
-            color_map_entry.set("label", f"Class {i+1}")
+            color_map_entry.set("label", f"{level_class[i]}")
     
     # Convert to string with pretty printing
         rough_string = ET.tostring(root, encoding='utf-8')

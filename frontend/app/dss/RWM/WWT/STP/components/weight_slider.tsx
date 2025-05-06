@@ -26,45 +26,85 @@ export const CategorySlider = () => {
   }
   
   return (
-    <div className="w-100 p-4 bg-white border-t border-gray-200">
-      <h3 className="text-lg font-medium mb-3 text-gray-800">Percentage Influnce (0-10)</h3>
-      
-      <div className="space-y-4">
-        {categories.map((category) => (
-          // Only render sliders for selected categories
-          isSelected(category.RasterName) && (
-            <div key={category.id} className="mb-3">
-              <div className="flex justify-between mb-1">
-                <span className={`text-sm font-medium ${category.color}`}>
-                  {category.name}
-                </span>
-                <span className="text-sm font-bold">
-                  {getCategoryInfluence(category.RasterName)}
-                </span>
+    <div className="w-full p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+    <h3 className="text-lg font-semibold mb-4 text-gray-800">Percentage Influence</h3>
+    
+    <div className="space-y-5">
+      {categories.map((category) => (
+        // Only render sliders for selected categories
+        isSelected(category.RasterName) && (
+          <div key={category.id} className="mb-4">
+            <div className="flex justify-between mb-2">
+              <span className={`text-sm font-medium ${category.color}`}>
+                {category.name}
+              </span>
+              <span className="text-sm font-bold">
+                {getCategoryInfluence(category.RasterName)}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="text-xs text-gray-500 w-24 text-left">
+                <span className="font-medium">1</span> (Least Important)
               </div>
               
-              <div className="flex items-center gap-2">
-                <span className="text-xs">0</span>
+              <div className="relative flex-1">
+                {/* Custom slider track with gradient */}
+                <div className="absolute h-2 w-full rounded-lg bg-gradient-to-r from-blue-100 to-blue-600"></div>
+                
+                {/* Tick marks for reference points */}
+                <div className="absolute w-full flex justify-between px-1 -mt-1">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="h-4 w-0.5 bg-gray-300"></div>
+                  ))}
+                </div>
+                
                 <input
                   type="range"
-                  min="0"
+                  min="1"
                   max="10"
-                  step="0.1"
                   value={getCategoryInfluence(category.RasterName)}
                   onChange={(e) => updateCategoryInfluence(category.RasterName, parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  className="relative w-full h-2 bg-transparent appearance-none cursor-pointer z-10"
+                  style={{
+                    // Custom thumb styling for better visibility
+                    WebkitAppearance: 'none',
+                    appearance: 'none'
+                  }}
+                  aria-label={`Adjust importance of ${category.name} from 1 (least important) to 10 (most important)`}
                 />
-                <span className="text-xs">10</span>
+              </div>
+              
+              <div className="text-xs text-gray-500 w-24 text-right">
+                <span className="font-medium">10</span> (Most Important)
               </div>
             </div>
-          )
-        ))}
-      </div>
-      
-      <div className="mt-4 text-xs text-gray-500">
-        Adjust the sliders to change the importance of each category in the analysis
-      </div>
+            
+            {/* Visual scale indicators */}
+            <div className="flex justify-between mt-1 px-24">
+              <div className="flex gap-1 items-center">
+                <div className="w-2 h-2 rounded-full bg-blue-100"></div>
+                <span className="text-xs text-gray-400">Low</span>
+              </div>
+              <div className="flex gap-1 items-center">
+                <div className="w-2 h-2 rounded-full bg-blue-300"></div>
+                <span className="text-xs text-gray-400">Medium</span>
+              </div>
+              <div className="flex gap-1 items-center">
+                <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                <span className="text-xs text-gray-400">High</span>
+              </div>
+            </div>
+          </div>
+        )
+      ))}
     </div>
+    
+    <div className="mt-6 p-3 bg-gray-50 rounded text-sm text-gray-600 border-l-4 border-blue-400">
+      <p className="font-medium mb-1">How to use:</p>
+      <p>Drag the sliders to adjust the importance of each category. Higher values (closer to 10) give more weight to that factor in the analysis.</p>
+    </div>
+  </div>
   );
 };
 

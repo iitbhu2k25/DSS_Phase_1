@@ -17,6 +17,7 @@ import { useMap } from '@/app/contexts//STP/MapContext';
 import { useCategory } from '@/app/contexts/STP/CategoryContext';
 import { createStringXY } from 'ol/coordinate';
 import 'ol/ol.css';
+import WKT from 'ol/format/WKT';
 
 // Define base map type interface
 interface BaseMapDefinition {
@@ -120,6 +121,8 @@ const Maping: React.FC = () => {
   const INDIA_CENTER_LON = 78.9629;
   const INDIA_CENTER_LAT = 20.5937;
   const INITIAL_ZOOM = 6;
+
+  const [wtkpoly,setwtkpoly]=useState<any>(null);
 
   // Helper function to toggle full screen manually
   const toggleFullScreen = () => {
@@ -443,6 +446,20 @@ const Maping: React.FC = () => {
     // Add the new secondary layer to the map
     mapInstanceRef.current.addLayer(secondaryVectorLayer);
     secondaryLayerRef.current = secondaryVectorLayer;
+    secondaryVectorSource.once('change', function() {
+    
+      if (secondaryVectorSource.getState() === 'ready') {
+        // Get all features
+        const features = secondaryVectorSource.getFeatures();
+        
+        // Filter for polygon features if needed
+        const polygonFeatures = features.filter(feature => {
+          const geometry = feature.getGeometry();
+          return geometry && geometry.getType().includes('Polygon');
+        });
+        setwtkpoly(polygonFeatures);
+      }
+    });
     
     return () => {
       // Cleanup listeners
@@ -546,7 +563,12 @@ const Maping: React.FC = () => {
         url: layerUrl,
         layers: fullLayerName
       });
-      
+      // const format = new WKT();
+      // const geomInWGS84 = wtkpoly[0].getGeometry().clone();
+      // const wktPolygon = format.writeGeometry(geomInWGS84);
+      // console.log("test geo",wktPolygon)
+      const format = new WKT();
+      const wktPolygon = format.writeGeometry(wtkpoly[0].getGeometry().clone());
       // Create WMS source with simplified params (matching working example)
       const wmsSource = new ImageWMS({
         url: layerUrl,
@@ -555,15 +577,19 @@ const Maping: React.FC = () => {
           'TILED': true,
           'FORMAT': 'image/png',
           'TRANSPARENT': true,
+          'clip': wktPolygon
         },
         ratio: 1,
         serverType: 'geoserver',
       });
+   
       
       // Generate legend URL for the WMS layer
       const legendUrlString = `${layerUrl}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=${fullLayerName}&STYLE=`;
       setLegendUrl(legendUrlString);
-      
+      if (secondaryLayerRef.current) {
+        mapInstanceRef.current.removeLayer(secondaryLayerRef.current);
+      }
       // CORS FIX: Add small delay before adding layer to map (like in working example)
       setTimeout(() => {
         // Create the layer
