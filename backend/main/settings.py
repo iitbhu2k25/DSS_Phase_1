@@ -31,7 +31,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "Basic",
     "raster_visual",
-    "GWM"
+    "GWM",
+    
 ]
 
 MIDDLEWARE = [

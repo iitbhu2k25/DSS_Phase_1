@@ -356,7 +356,12 @@ const Navbar = (): JSX.Element => {
                     </li>
                     <li>
                       <Link href="/dss/RWM/WWT/STP" className="block px-4 py-2 text-blue-600 font-semibold hover:bg-blue-50 hover:bg-opacity-10 rounded-md transition duration-200">
-                        Site Priority and Suitability
+                        STP Priority 
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/dss/RWM/WWT/Suitability" className="block px-4 py-2 text-blue-600 font-semibold hover:bg-blue-50 hover:bg-opacity-10 rounded-md transition duration-200">
+                        STP Suitability
                       </Link>
                     </li>
                     <li>
