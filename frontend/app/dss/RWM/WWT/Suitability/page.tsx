@@ -9,12 +9,12 @@ import { LocationProvider } from '../../../../contexts/Suitability/locationConte
 import { ConditioningFactorsProvider } from '../../../../contexts/Suitability/conditioningContext';
 import { ConstraintFactorsProvider } from '../../../../contexts/Suitability/constraintContext';
 
-const SitePriorityApp: React.FC = () => {
+const SiteSuitabilityApp: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-blue-600 text-white py-4 px-8">
-        <h1 className="text-xl font-semibold mb-1">Site Priority and Suitability Selection</h1>
-        <p className="text-sm opacity-90">Analyze and prioritize locations based on multiple criteria</p>
+        <h1 className="text-xl font-semibold mb-1">STP Site Suitability </h1>
+        
       </header>
       
       <div className="flex p-4 gap-4">
@@ -42,4 +42,4 @@ const SitePriorityApp: React.FC = () => {
   );
 };
 
-export default SitePriorityApp;
+export default SiteSuitabilityApp;

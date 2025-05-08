@@ -8,7 +8,7 @@ import WeightAdjustment from './components/WeightAdjustment';
 import { LocationProvider } from '../../../../contexts/Suitability/locationContext';
 // Import other contexts as needed
 
-const SitePriorityApp: React.FC = () => {
+const SiteSuitabilityApp: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-blue-600 text-white py-4 px-8">
@@ -38,4 +38,4 @@ const SitePriorityApp: React.FC = () => {
   );
 };
 
-export default SitePriorityApp;
+export default SiteSuitabilityApp;
