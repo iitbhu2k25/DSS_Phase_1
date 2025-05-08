@@ -6,7 +6,7 @@ from app.api.service.script_svc.geoserver_svc import create_workspace,create_vec
 state_zip = os.path.join(BASE_DIR, 'media', 'Rajat_data', 'shape_stp', 'state', 'STP_State.zip')
 district_zip = os.path.join(BASE_DIR, 'media', 'Rajat_data', 'shape_stp', 'district', 'STP_district.zip')
 subdistrict_zip = os.path.join(BASE_DIR, 'media', 'Rajat_data', 'shape_stp', 'subdistrict', 'STP_subdistrict.zip')
-# villages_zip = os.path.join(BASE_DIR, 'media', 'Rajat_data', 'shape_stp', 'villages', 'STP_Basin_Village.zip')
+villages_zip = os.path.join(BASE_DIR, 'media', 'Rajat_data', 'shape_stp', 'villages', 'STP_Village.zip')
 
 try:
     create_workspace("vector_work")
@@ -14,7 +14,7 @@ try:
     upload_shapefile("vector_work","stp_vector_store",state_zip,"STP_state_layers")
     upload_shapefile("vector_work","stp_vector_store",district_zip,"STP_district_layers")
     upload_shapefile("vector_work","stp_vector_store",subdistrict_zip,"STP_subdistrict_layers")
-    # upload_shapefile("vector_work","stp_vector_store",villages_zip,"STP_villages_layers")
+    upload_shapefile("vector_work","stp_vector_store",villages_zip,"STP_villages_layers")
     
     # now upload the shape file in geoserver
 

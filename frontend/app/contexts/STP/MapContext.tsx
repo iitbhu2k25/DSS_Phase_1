@@ -7,6 +7,7 @@ const LAYER_NAMES = {
   STATE: "STP_State",
   DISTRICT: "STP_district",
   SUB_DISTRICT: "STP_subdistrict",
+  VILLAGES: "STP_Village",
 };
 
 // Type definitions for the context
@@ -15,6 +16,8 @@ interface MapContextType {
   secondaryLayer: string | null;
   LayerFilter: string | null;
   LayerFilterValue: number[] | null;
+  showVillages: boolean;
+  setshowVillages: (showVillages: boolean) => void;
   setSecondaryLayer: (layer: string | null) => void;
   stpOperation: boolean;
   setstpOperation: (operation: boolean) => void;
@@ -26,6 +29,7 @@ interface MapContextType {
   geoServerUrl: string;
   defaultWorkspace: string;
   LAYER_NAMES: typeof LAYER_NAMES;
+
 }
 
 // Props for the MapProvider component
@@ -44,6 +48,8 @@ const MapContext = createContext<MapContextType>({
   stpOperation: false,
   setstpOperation: () => {},
   setSecondaryLayer: () => {},
+  setshowVillages: () => {},
+  showVillages: false,
   setPrimaryLayer: () => {},
   syncLayersWithLocation: () => {},
   isMapLoading: false,
@@ -67,6 +73,7 @@ export const MapProvider: React.FC<MapProviderProps> = ({
   const [LayerFilterValue, setLayerFilterValue] = useState<number[]>([]);
   const [isMapLoading, setIsMapLoading] = useState<boolean>(false);
   const [stpOperation, setstpOperation] = useState<boolean>(false);
+  const [showVillages, setshowVillages] = useState<boolean>(false);
   // Get location context data
   const {
     selectedState,
@@ -75,7 +82,6 @@ export const MapProvider: React.FC<MapProviderProps> = ({
     states,
     districts,
     subDistricts,
-
   } = useLocation();
 
   // Function to reset map view (zoom to default)
@@ -101,8 +107,12 @@ export const MapProvider: React.FC<MapProviderProps> = ({
     let filters_type:string | null = null;
     let filters_value: number[] = [];
     
-    // Logic for determining which layers to show based on selection state
-    if (selectedSubDistricts.length) {
+    if (showVillages) {
+      secondary = LAYER_NAMES.VILLAGES;
+      filters_type = 'subdis_cod';
+      filters_value = selectedSubDistricts;
+    }
+    else if (selectedSubDistricts.length) {
       secondary = LAYER_NAMES.SUB_DISTRICT;
       filters_type = 'subdis_cod';
       filters_value = selectedSubDistricts;
@@ -134,6 +144,7 @@ export const MapProvider: React.FC<MapProviderProps> = ({
     selectedState,
     selectedDistricts.length,
     selectedSubDistricts.length,
+    showVillages,
   ]);
   
   // Context value
@@ -147,6 +158,8 @@ export const MapProvider: React.FC<MapProviderProps> = ({
     setPrimaryLayer,
     setSecondaryLayer,
     syncLayersWithLocation,
+    showVillages,
+    setshowVillages,
     isMapLoading,
     zoomToFeature,
     resetMapView,

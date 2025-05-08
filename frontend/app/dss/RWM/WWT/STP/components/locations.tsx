@@ -20,7 +20,6 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onConfirm, onReset 
     selectedState,
     selectedDistricts,
     selectedSubDistricts,
-    totalPopulation,
     selectionsLocked,
     isLoading,
     handleStateChange,
@@ -74,7 +73,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onConfirm, onReset 
   
   // Format sub-district display to include population
   const formatSubDistrictDisplay = (subDistrict: SubDistrict): string => {
-    return `${subDistrict.name} (Pop: ${subDistrict.population.toLocaleString()})`;
+    return `${subDistrict.name}`;
   };
   
   return (
@@ -138,7 +137,6 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ onConfirm, onReset 
               ? 'All Sub-Districts' 
               : subDistricts.filter(sd => selectedSubDistricts.includes(sd.id.toString())).map(sd => sd.name).join(', '))
             : 'None'}</p>
-          <p><span className="font-medium">Total Population:</span> {totalPopulation.toLocaleString()}</p>
           {selectionsLocked && (
             <p className="mt-2 text-green-600 font-medium">Selections confirmed and locked</p>
           )}

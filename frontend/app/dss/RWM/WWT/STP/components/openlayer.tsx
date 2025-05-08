@@ -18,6 +18,7 @@ import { useCategory } from '@/app/contexts/STP/CategoryContext';
 import { createStringXY } from 'ol/coordinate';
 import 'ol/ol.css';
 import WKT from 'ol/format/WKT';
+import { set } from 'ol/transform';
 
 // Define base map type interface
 interface BaseMapDefinition {
@@ -112,6 +113,8 @@ const Maping: React.FC = () => {
     isMapLoading,
     setstpOperation,
     stpOperation,
+    setshowVillages,
+    showVillages
   } = useMap();
 
   const {
@@ -391,6 +394,7 @@ const Maping: React.FC = () => {
       'srsname=EPSG:3857&'+
       `CQL_FILTER=${LayerFilter} IN (${Array.isArray(LayerFilterValue) ? LayerFilterValue.map(v => `'${v}'`).join(',') : `'${LayerFilterValue}'`})`;
     
+    
     const secondaryVectorStyle = new Style({
       fill: new Fill({
         color: 'rgba(251, 0, 255, 0.3)'
@@ -409,10 +413,12 @@ const Maping: React.FC = () => {
     
     const secondaryVectorLayer = new VectorLayer({
       source: secondaryVectorSource,
-      style: secondaryVectorStyle,
       zIndex: 2
     });
     
+    if (!showVillages) {
+      secondaryVectorLayer.setStyle(secondaryVectorStyle);
+    }
     // Handle secondary layer loading
     const handleSecondaryFeaturesError = (err: any) => {
       console.error("Error loading secondary layer features:", err);
@@ -505,6 +511,7 @@ const Maping: React.FC = () => {
           console.log("Raster layer info set:", result);
           // Automatically show legend when raster layer is added
           setShowLegend(true);
+       
         } else {
           console.error("STP operation did not return success:", result);
           setError(`STP operation failed: ${result.status || 'Unknown error'}`);
@@ -515,6 +522,7 @@ const Maping: React.FC = () => {
         console.error("Error performing STP operation:", error);
         setError(`Error communicating with STP service: ${error.message}`);
         setRasterLoading(false);
+        setshowVillages(false);
       } finally {
         setstpOperation(false);
       }
@@ -563,13 +571,10 @@ const Maping: React.FC = () => {
         url: layerUrl,
         layers: fullLayerName
       });
-      // const format = new WKT();
-      // const geomInWGS84 = wtkpoly[0].getGeometry().clone();
-      // const wktPolygon = format.writeGeometry(geomInWGS84);
-      // console.log("test geo",wktPolygon)
+
       const format = new WKT();
       const wktPolygon = format.writeGeometry(wtkpoly[0].getGeometry().clone());
-      // Create WMS source with simplified params (matching working example)
+  
       const wmsSource = new ImageWMS({
         url: layerUrl,
         params: {
@@ -582,9 +587,7 @@ const Maping: React.FC = () => {
         ratio: 1,
         serverType: 'geoserver',
       });
-   
-      
-      // Generate legend URL for the WMS layer
+
       const legendUrlString = `${layerUrl}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=${fullLayerName}&STYLE=`;
       setLegendUrl(legendUrlString);
       if (secondaryLayerRef.current) {
@@ -597,7 +600,7 @@ const Maping: React.FC = () => {
           source: wmsSource,
           visible: true,
           opacity: layerOpacity/100,
-          zIndex: 3 // Set higher zIndex to display above vector layers
+          zIndex: 5 // Set higher zIndex to display above vector layers
         });
         
         // Generate a unique ID for the layer
@@ -611,7 +614,7 @@ const Maping: React.FC = () => {
         
         // Force a map render
         map.renderSync();
-        
+        setshowVillages(true);
         setRasterLoading(false);
         console.log(`Raster layer added: ${fullLayerName}`);
       }, 100);
@@ -620,6 +623,7 @@ const Maping: React.FC = () => {
       console.error("Error setting up raster layer:", error);
       setError(`Error setting up raster layer: ${error.message}`);
       setRasterLoading(false);
+      set
     }
     
   }, [mapInstanceRef.current, rasterLayerInfo, layerOpacity, stpOperation, selectedCategoryName]);

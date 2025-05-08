@@ -35,8 +35,10 @@ interface LocationContextType {
   selectedDistricts: number[];
   selectedSubDistricts: number[];
   totalPopulation: number;
+  showVillages: boolean;
   selectionsLocked: boolean;
   isLoading: boolean;
+  setshowVillages: (showVillages: boolean) => void;
   handleStateChange: (stateId: number) => void;
   setSelectedDistricts: (districtIds: number[]) => void;
   setSelectedSubDistricts: (subDistrictIds: number[]) => void;
@@ -57,6 +59,8 @@ const LocationContext = createContext<LocationContextType>({
   selectedState: null,
   selectedDistricts: [],
   selectedSubDistricts: [],
+  showVillages: false,
+  setshowVillages:()=>{},
   totalPopulation: 0,
   selectionsLocked: false,
   isLoading: false,
@@ -78,6 +82,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   const [selectedState, setSelectedState] = useState<number | null>(null);
   const [selectedDistricts, setSelectedDistricts] = useState<number[]>([]);
   const [selectedSubDistricts, setSelectedSubDistricts] = useState<number[]>([]);
+  const [showVillages,setshowVillages] = useState<Boolean>(false);
   
   // State for additional information
   const [totalPopulation, setTotalPopulation] = useState<number>(0);
